@@ -24,9 +24,15 @@ namespace IngameScript
     {
 
 
+        //INFO:ModulName = Energy;
+        //SETTING:Blala = 20:10|20|30;
+        //INFO:EnergyUse = 20;
+        //WARNING:Energy = Low Battery!:1;
+
 
 
         #region Private
+        double VErsion = 0.1;
         List<IMyTerminalBlock> allblocks = new List<IMyTerminalBlock>();
         List<IMyReactor> AllReactors = new List<IMyReactor>();
         List<IMyBatteryBlock> AllBatterys = new List<IMyBatteryBlock>();
@@ -70,6 +76,20 @@ namespace IngameScript
         List<IMyTextPanel> AllLCD = new List<IMyTextPanel>();
         List<IMyTimerBlock> AllTimer = new List<IMyTimerBlock>();
         List<IMyWarhead> AllWarheads = new List<IMyWarhead>();
+        List<CDValues> CDData = new List<CDValues>();
+
+
+
+        class CDValues
+        {
+            public string Tag { get; set; }
+
+            public string Name { get; set; }
+
+            public string Value { get; set; }
+
+            public string Value2 { get; set; }
+        }
 
         #endregion
 
@@ -77,30 +97,46 @@ namespace IngameScript
 
 
         #region Startup
+        bool CustomDataEmpty = false;
         public Program()
         {
+            Runtime.UpdateFrequency = UpdateFrequency.Once;
             Me.CustomName = "M1337";
+            Findblocks();
 
+            ReadFromCustomData();
 
+            if(CustomDataEmpty)
+            {
+                WriteNewCustomData();
+
+            }
+
+            Runtime.UpdateFrequency = UpdateFrequency.Update100;
         }
+
+
+        //edit per new  modul 
+
+
 
         public void Findblocks()
         {
-            Runtime.UpdateFrequency = UpdateFrequency.None;
+            
             allblocks.Clear();
 
 
             GridTerminalSystem.GetBlocks(allblocks);
             foreach (IMyTerminalBlock Block in allblocks)
             {
-                if(Block.IsSameConstructAs(Me))
+                if (Block.IsSameConstructAs(Me))
                 {
-                    if(Block is IMyReactor)
+                    if (Block is IMyReactor)
                     {
                         IMyReactor Reactor = (IMyReactor)Block;
                         AllReactors.Add(Reactor);
                     }
-                    if(Block is IMyBatteryBlock)
+                    if (Block is IMyBatteryBlock)
                     {
                         IMyBatteryBlock Battery = (IMyBatteryBlock)Block;
                         AllBatterys.Add(Battery);
@@ -155,7 +191,7 @@ namespace IngameScript
                         IMyShipDrill AddBlock = (IMyShipDrill)Block;
                         AllDrills.Add(AddBlock);
                     }
-                    if(Block is IMySmallGatlingGun)
+                    if (Block is IMySmallGatlingGun)
                     {
                         IMySmallGatlingGun AddBlock = (IMySmallGatlingGun)Block;
                         AllWeapons.Add(AddBlock);
@@ -352,13 +388,6 @@ namespace IngameScript
                     }
 
 
-
-                    hier //alle  Blöcke hinzufügen
-
-
-
-
-
                         Runtime.UpdateFrequency = UpdateFrequency.Update100;
                     return;
                 }
@@ -366,6 +395,129 @@ namespace IngameScript
 
             }
         }
+
+        public int ReturnIndexFromStoredCustomData(string SearchName, string SearchTag)
+        {
+            int C1 = 0;
+            do
+            {
+
+                if (CDData[C1].Name == SearchName && CDData[C1].Tag == SearchTag)
+                {
+
+                    break;
+                }
+
+                C1++;
+
+            } while (C1 < CDData.Count - 1);
+
+            return C1;
+        }
+
+
+        public void SaveToStoredCustomData(string Name, string Tag, string Value1, string Value2)
+        {
+            int Index = -1;
+            Index = ReturnIndexFromStoredCustomData(Name, Tag);
+            if(Index != -1)
+            {
+                CDData[Index].Name = Name;
+                CDData[Index].Tag = Tag;
+                CDData[Index].Value = Value1;
+                CDData[Index].Value2 = Value2;
+            }
+            else
+            {
+                CDData.Add(new CDValues { Name = Name, Tag = Tag, Value = Value1, Value2 = Value2 });
+
+            }
+
+            return;
+        }
+
+        public void RemoveFromStoredCustomData(string Name, string Tag)
+        {
+            int Index = -1;
+            Index = ReturnIndexFromStoredCustomData(Name, Tag);
+            if (Index != -1)
+            {
+                CDData.RemoveAt(Index);
+            }
+            return;
+        }
+
+        //INFO:ModulName = Energy;
+        //SETTING:Blala = 20:10|20|30;
+        //INFO:EnergyUse = 20;
+        //WARNING:Energy = Low Battery!:1;
+
+
+        public void ReadFromCustomData()
+        {
+            string CD = Me.CustomData;
+            if (CD != "")
+            {
+                string[] Split = CD.Split(';');
+                if (Split.Length > 1)
+                {
+                    foreach (string Data in Split)
+                    {
+                        string[] Split1 = Data.Split('=');
+                        string[] Split2 = Split[0].Split(';');//vor =
+                        string[] Split3 = Split[1].Split(';');//nach =
+                       
+                        if(Split.Length > 1)
+                        {
+                            if(Split2.Length > 1)
+                            {
+                                CustomDataEmpty = false;
+                                if(Split2.Contains("INFO"))
+                                {
+                                    CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0], Value = Split3[0] });
+
+
+                                }
+                                else
+                                {
+                                    if(Split3.Length > 1)
+                                    {
+                                        string SecondValue = Split3[1].Replace(";", "");
+                                        CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0], Value = Split3[0], Value2 = Split3[1] });
+
+
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    CustomDataEmpty = true;
+                }
+            }
+            return;
+        }
+
+        public void WriteToCustomData()
+        {
+            if(CDData.Count > 0)
+            {
+                string Out = "";
+                foreach(CDValues Value in CDData)
+                {
+                    Out = Value.Tag + ":" + Value.Name + "=" + Value.Value + ":" + Value.Value2 + ";" ;
+
+                }
+
+                Me.CustomData = Out;
+
+            }
+            return;
+        }
+
 
         #endregion
 
@@ -375,7 +527,35 @@ namespace IngameScript
 
         }
         #endregion
+
+
         #region main
+
+        #region Script specific Settings
+        bool EmergencyMode = false;
+        bool EnergySaverModeSetting = false;
+        bool EnergySaverModeActive = false;
+        bool UranSaverMode = false;
+
+
+        //INFO:ModulName = Energy;
+        //SETTING:Blala = 20:10|20|30;
+        //INFO:EnergyUse = 20;
+        //WARNING:Energy = Low Battery!:1;
+        public void WriteNewCustomData()
+        {
+            string Out = "INFO:ModulName = Energy;" + Environment.NewLine;
+            Out = Out + "SETTING:EnergySaverMode = On:On|Off;" + Environment.NewLine;
+            Out = Out + "SETTING:UranSaverMode = Off:On|Off;" + Environment.NewLine;
+            Out = Out + "Setting:EmergencyMode = Off:On|Off;" + Environment.NewLine;
+
+
+            hier
+
+        }
+
+        #endregion
+
         public void Main(string argument, UpdateType updateSource)
         {
 
@@ -384,7 +564,12 @@ namespace IngameScript
 
         }
 
+
         #endregion
+
+
+
+        
 
         #region Energydata
 
