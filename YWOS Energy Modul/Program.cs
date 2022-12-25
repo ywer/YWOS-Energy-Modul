@@ -32,7 +32,7 @@ namespace IngameScript
 
         #region Settings
         int MaxTicks = 10;
-
+        string ModuleName = "Energy";
         #endregion
 
 
@@ -82,7 +82,7 @@ namespace IngameScript
         List<IMyTimerBlock> AllTimer = new List<IMyTimerBlock>();
         List<IMyWarhead> AllWarheads = new List<IMyWarhead>();
         List<CDValues> CDData = new List<CDValues>();
-
+        int WMessageID = 0;
 
 
         class CDValues
@@ -129,6 +129,49 @@ namespace IngameScript
         {
             
             allblocks.Clear();
+            AllReactors.Clear();
+            AllBatterys.Clear();
+            AllThruster.Clear();
+            AllRefinerys.Clear();
+            AllAssembler.Clear();
+            AllAirVents.Clear();
+            AllAntennas.Clear();
+            AllRotors.Clear();
+            AllMass.Clear();
+            AllBeacons.Clear();
+            AllWeapons.Clear();
+            AllLights.Clear();
+            AllJumpDrives.Clear();
+            AllLaserAntennas.Clear();
+            AllOreDetector.Clear();
+            AllOxygenFarms.Clear();
+            AllOxygenGenerators.Clear();
+            AllPistons.Clear();
+            AllProg.Clear();
+            AllProjectors.Clear();
+            AllRemotes.Clear();
+            AllSensors.Clear();
+            AllGravityGenerators.Clear();
+            AllGrinder.Clear();
+            AllWelder.Clear();
+            AllDrills.Clear();
+            AllCameras.Clear();
+            AllButtonPanels.Clear();
+            AllShipController.Clear();
+            AllCollectors.Clear();
+            AllConnectors.Clear();
+            AllSorter.Clear();
+            ALlDoors.Clear();
+            AllGyros.Clear();
+            AllGears.Clear();
+            AllMedbays.Clear();
+            AllMergeBlocks.Clear();
+            AllOxygentanks.Clear();
+            AllSpaceballs.Clear();
+            AllLCD.Clear();
+            AllTimer.Clear();
+            AllWarheads.Clear();
+
 
 
             GridTerminalSystem.GetBlocks(allblocks);
@@ -401,6 +444,10 @@ namespace IngameScript
             }
         }
 
+
+        #endregion
+
+        #region CustomData
         public int ReturnIndexFromStoredCustomData(string SearchName, string SearchTag)
         {
             int C1 = 0;
@@ -452,10 +499,7 @@ namespace IngameScript
             return;
         }
 
-        //INFO:ModulName = Energy;
-        //SETTING:Blala = 20:10|20|30;
-        //INFO:EnergyUse = 20;
-        //WARNING:Energy = Low Battery!:1;
+
 
 
         public void ReadFromCustomData()
@@ -524,7 +568,14 @@ namespace IngameScript
             return;
         }
 
+        public void AddWarning(string Text)
+        {
+            //WARNING:Energy = Low Battery!:1;
 
+            CDData.Add(new CDValues { Name = ModuleName, Tag = "WARNING", Value = Text, Value2 = WMessageID.ToString() });
+            WMessageID++;
+            return;
+        }
         #endregion
 
         #region Save
@@ -539,20 +590,11 @@ namespace IngameScript
 
         #region Script specific Settings
         //edit per new  modul 
-        double Version = 0.1;
-        bool EmergencyMode = false;
-        bool EnergySaverModeSetting = false;
-        bool EnergySaverModeActive = false;
-        bool UranSaverMode = false;
+        double Version = 0.0; //0.0 = BASE!
 
-
-        //INFO:ModulName = Energy;
-        //SETTING:Blala = 20:10|20|30;
-        //INFO:EnergyUse = 20;
-        //WARNING:Energy = Low Battery!:1;
         public void WriteNewCustomData()
         {
-            string Out = "INFO:ModulName = Energy;" + Environment.NewLine;
+            string Out = "INFO:ModulName = " + ModuleName + Environment.NewLine;
             Out = Out + "SETTING:EnergySaverMode = On:On|Off;" + Environment.NewLine;
             Out = Out + "SETTING:UranSaverMode = Off:On|Off;" + Environment.NewLine;
             Out = Out + "Setting:EmergencyMode = Off:On|Off;" + Environment.NewLine;
@@ -578,6 +620,7 @@ namespace IngameScript
             if(Tick == 0)
             {
                 WriteToCustomData();
+                Findblocks();
             }
 
             
@@ -602,10 +645,7 @@ namespace IngameScript
 
         
 
-        #region Energydata
-
-
-        #endregion
+       
 
     }
 }
