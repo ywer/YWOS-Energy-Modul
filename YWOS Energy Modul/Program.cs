@@ -22,7 +22,7 @@ namespace IngameScript
 {
     partial class Program : MyGridProgram
     {
-
+        //Code by Ywer
 
         //INFO:ModulName = Energy;
         //SETTING:Blala = 20:10|20|30;
@@ -30,9 +30,14 @@ namespace IngameScript
         //WARNING:Energy = Low Battery!:1;
 
 
+        #region Settings
+        int MaxTicks = 10;
+
+        #endregion
+
+
 
         #region Private
-        double VErsion = 0.1;
         List<IMyTerminalBlock> allblocks = new List<IMyTerminalBlock>();
         List<IMyReactor> AllReactors = new List<IMyReactor>();
         List<IMyBatteryBlock> AllBatterys = new List<IMyBatteryBlock>();
@@ -116,7 +121,7 @@ namespace IngameScript
         }
 
 
-        //edit per new  modul 
+        
 
 
 
@@ -461,6 +466,7 @@ namespace IngameScript
                 string[] Split = CD.Split(';');
                 if (Split.Length > 1)
                 {
+                    CDData.Clear();
                     foreach (string Data in Split)
                     {
                         string[] Split1 = Data.Split('=');
@@ -532,6 +538,8 @@ namespace IngameScript
         #region main
 
         #region Script specific Settings
+        //edit per new  modul 
+        double Version = 0.1;
         bool EmergencyMode = false;
         bool EnergySaverModeSetting = false;
         bool EnergySaverModeActive = false;
@@ -549,8 +557,7 @@ namespace IngameScript
             Out = Out + "SETTING:UranSaverMode = Off:On|Off;" + Environment.NewLine;
             Out = Out + "Setting:EmergencyMode = Off:On|Off;" + Environment.NewLine;
 
-
-            hier
+            Me.CustomData = Out;
 
         }
 
@@ -560,8 +567,32 @@ namespace IngameScript
         {
 
 
+            DoEveryTime();
+            return;
+        }
+
+        int Tick = 0;
+        public void DoEveryTime()
+        {
+
+            if(Tick == 0)
+            {
+                WriteToCustomData();
+            }
+
+            
 
 
+
+
+
+
+            Tick++;
+            if (Tick >= MaxTicks)
+            {
+                Tick = 0;
+            }
+            return;
         }
 
 
