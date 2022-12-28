@@ -932,7 +932,6 @@ namespace IngameScript
                 UranSaverModeFunc(true);
             }
 
-           // TODO: Settings anpassen, auserdem reaktion auf füllstand von Batterien
         }
         int EmergencyMessageId = -1;
         int UNEmergencyMessageId = -1;
@@ -940,7 +939,7 @@ namespace IngameScript
         List<IMyTerminalBlock> AllEnabeldEmergency = new List<IMyTerminalBlock>();
         public void EmergencymodeFunc(bool Activate)
         {
-            //TODO: Blöcke speichern in liste wenn sie an waren wie bei UnranSaving
+
             int Test = -1;
             int I = 0;
             if (Activate)
