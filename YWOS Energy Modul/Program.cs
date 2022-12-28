@@ -33,7 +33,9 @@ namespace IngameScript
         #region Settings
         int MaxTicks = 10;
         string ModuleName = "Energy";
+
         #endregion
+
 
 
 
@@ -41,15 +43,21 @@ namespace IngameScript
         List<IMyTerminalBlock> allblocks = new List<IMyTerminalBlock>();
         List<IMyReactor> AllReactors = new List<IMyReactor>();
         List<IMyBatteryBlock> AllBatterys = new List<IMyBatteryBlock>();
+        List<IMySolarPanel> AllSolarPanels = new List<IMySolarPanel>();
         List<IMyThrust> AllThruster = new List<IMyThrust>();
         List<IMyRefinery> AllRefinerys = new List<IMyRefinery>();
         List<IMyAssembler> AllAssembler = new List<IMyAssembler>();
         List<IMyAirVent> AllAirVents = new List<IMyAirVent>();
         List<IMyRadioAntenna> AllAntennas = new List<IMyRadioAntenna>();
-        List<IMyTerminalBlock> AllRotors = new List<IMyTerminalBlock>();
+        List<IMyMotorStator> AllRotors = new List<IMyMotorStator>();
         List<IMyArtificialMassBlock> AllMass = new List<IMyArtificialMassBlock>();
         List<IMyBeacon> AllBeacons = new List<IMyBeacon>();
-        List<IMyTerminalBlock> AllWeapons = new List<IMyTerminalBlock>();
+        List<IMyLargeInteriorTurret> AllIntTurrets = new List<IMyLargeInteriorTurret>();
+        List<IMyLargeMissileTurret> AllLargeMissleturrets = new List<IMyLargeMissileTurret>();
+        List<IMySmallMissileLauncher> AllSmallMissleturrets = new List<IMySmallMissileLauncher>();
+        List<IMySmallMissileLauncherReload> AllSmallRocketLauncher = new List<IMySmallMissileLauncherReload>();
+        List<IMyLargeGatlingTurret> AllLargeGatlingTurrets = new List<IMyLargeGatlingTurret>();
+        List<IMySmallGatlingGun> AllSmallGatlinTurrets = new List<IMySmallGatlingGun>();
         List<IMyTerminalBlock> AllLights = new List<IMyTerminalBlock>();
         List<IMyJumpDrive> AllJumpDrives = new List<IMyJumpDrive>();
         List<IMyLaserAntenna> AllLaserAntennas = new List<IMyLaserAntenna>();
@@ -61,7 +69,8 @@ namespace IngameScript
         List<IMyProjector> AllProjectors = new List<IMyProjector>();
         List<IMyRemoteControl> AllRemotes = new List<IMyRemoteControl>();
         List<IMySensorBlock> AllSensors = new List<IMySensorBlock>();
-        List<IMyTerminalBlock> AllGravityGenerators = new List<IMyTerminalBlock>();
+        List<IMyGravityGenerator> AllGravityGenerators = new List<IMyGravityGenerator>();
+        List<IMyGravityGeneratorSphere> AllGravityGeneratorsSphere = new List<IMyGravityGeneratorSphere>();
         List<IMyShipGrinder> AllGrinder = new List<IMyShipGrinder>();
         List<IMyShipWelder> AllWelder = new List<IMyShipWelder>();
         List<IMyShipDrill> AllDrills = new List<IMyShipDrill>();
@@ -114,15 +123,11 @@ namespace IngameScript
             if(CustomDataEmpty)
             {
                 WriteNewCustomData();
-
+                ReadFromCustomData();
             }
 
             Runtime.UpdateFrequency = UpdateFrequency.Update100;
         }
-
-
-        
-
 
 
         public void Findblocks()
@@ -131,6 +136,7 @@ namespace IngameScript
             allblocks.Clear();
             AllReactors.Clear();
             AllBatterys.Clear();
+            AllSolarPanels.Clear();
             AllThruster.Clear();
             AllRefinerys.Clear();
             AllAssembler.Clear();
@@ -139,7 +145,12 @@ namespace IngameScript
             AllRotors.Clear();
             AllMass.Clear();
             AllBeacons.Clear();
-            AllWeapons.Clear();
+            AllIntTurrets.Clear();
+            AllLargeMissleturrets.Clear();
+            AllSmallMissleturrets.Clear();
+            AllSmallRocketLauncher.Clear();
+            AllLargeGatlingTurrets.Clear();
+            AllSmallGatlinTurrets.Clear();
             AllLights.Clear();
             AllJumpDrives.Clear();
             AllLaserAntennas.Clear();
@@ -152,6 +163,7 @@ namespace IngameScript
             AllRemotes.Clear();
             AllSensors.Clear();
             AllGravityGenerators.Clear();
+            AllGravityGeneratorsSphere.Clear();
             AllGrinder.Clear();
             AllWelder.Clear();
             AllDrills.Clear();
@@ -187,7 +199,20 @@ namespace IngameScript
                     if (Block is IMyBatteryBlock)
                     {
                         IMyBatteryBlock Battery = (IMyBatteryBlock)Block;
+                        if (EnableEmergencyShutoff)
+                        {
+                            if (EmergengyBattery == null)
+                            {
+                                EmergengyBattery = Battery;
+                                EmergengyBattery.CustomName = "EmergencyBatter Dont Toutch me!";
+                            }
+                        }
                         AllBatterys.Add(Battery);
+                    }
+                    if (Block is IMySolarPanel)
+                    {
+                        IMySolarPanel AddBlock = (IMySolarPanel)Block;
+                        AllSolarPanels.Add(AddBlock);
                     }
                     if (Block is IMyThrust)
                     {
@@ -216,12 +241,12 @@ namespace IngameScript
                     }
                     if (Block is IMyMotorAdvancedRotor)
                     {
-                        IMyTerminalBlock AddBlock = (IMyTerminalBlock)Block;
+                        IMyMotorStator AddBlock = (IMyMotorStator)Block;
                         AllRotors.Add(AddBlock);
                     }
                     if (Block is IMyMotorRotor)
                     {
-                        IMyTerminalBlock AddBlock = (IMyTerminalBlock)Block;
+                        IMyMotorStator AddBlock = (IMyMotorStator)Block;
                         AllRotors.Add(AddBlock);
                     }
                     if (Block is IMyArtificialMassBlock)
@@ -242,32 +267,32 @@ namespace IngameScript
                     if (Block is IMySmallGatlingGun)
                     {
                         IMySmallGatlingGun AddBlock = (IMySmallGatlingGun)Block;
-                        AllWeapons.Add(AddBlock);
+                        AllSmallGatlinTurrets.Add(AddBlock);
                     }
                     if (Block is IMyLargeGatlingTurret)
                     {
                         IMyLargeGatlingTurret AddBlock = (IMyLargeGatlingTurret)Block;
-                        AllWeapons.Add(AddBlock);
+                        AllLargeGatlingTurrets.Add(AddBlock);
                     }
                     if (Block is IMySmallMissileLauncher)
                     {
                         IMySmallMissileLauncher AddBlock = (IMySmallMissileLauncher)Block;
-                        AllWeapons.Add(AddBlock);
+                        AllSmallMissleturrets.Add(AddBlock);
                     }
-                    if (Block is IMyLargeGatlingTurret)
+                    if (Block is IMyLargeMissileTurret)
                     {
-                        IMyLargeGatlingTurret AddBlock = (IMyLargeGatlingTurret)Block;
-                        AllWeapons.Add(AddBlock);
+                        IMyLargeMissileTurret AddBlock = (IMyLargeMissileTurret)Block;
+                        AllLargeMissleturrets.Add(AddBlock);
                     }
                     if (Block is IMyLargeInteriorTurret)
                     {
                         IMyLargeInteriorTurret AddBlock = (IMyLargeInteriorTurret)Block;
-                        AllWeapons.Add(AddBlock);
+                        AllIntTurrets.Add(AddBlock);
                     }
                     if (Block is IMySmallMissileLauncherReload)
                     {
                         IMySmallMissileLauncherReload AddBlock = (IMySmallMissileLauncherReload)Block;
-                        AllWeapons.Add(AddBlock);
+                        AllSmallRocketLauncher.Add(AddBlock);
                     }
                     if (Block is IMyInteriorLight)
                     {
@@ -342,7 +367,7 @@ namespace IngameScript
                     if (Block is IMyGravityGeneratorSphere)
                     {
                         IMyGravityGeneratorSphere AddBlock = (IMyGravityGeneratorSphere)Block;
-                        AllGravityGenerators.Add(AddBlock);
+                        AllGravityGeneratorsSphere.Add(AddBlock);
                     }
                     if (Block is IMyShipGrinder)
                     {
@@ -434,14 +459,12 @@ namespace IngameScript
                         IMyWarhead AddBlock = (IMyWarhead)Block;
                         AllWarheads.Add(AddBlock);
                     }
-
-
-                        Runtime.UpdateFrequency = UpdateFrequency.Update100;
-                    return;
                 }
 
 
             }
+            Runtime.UpdateFrequency = UpdateFrequency.Update100;
+            return;
         }
 
 
@@ -499,7 +522,30 @@ namespace IngameScript
             return;
         }
 
+        public void ChangeSetting(string Name, string Value , string ValueRange)
+        {
+            foreach (CDValues CDValue in CDData)
+            {
+                if (CDValue.Tag == "SETTING")
+                {
+                    if (CDValue.Name.Contains(Name))
+                    {
+                        CDValue.Value = Value;
+                    }
+                    if(ValueRange != null && ValueRange != "")
+                    {
+                        CDValue.Value2 = ValueRange;
+                    }
 
+
+                }
+
+
+
+            }
+
+            return;
+        }
 
 
         public void ReadFromCustomData()
@@ -568,13 +614,13 @@ namespace IngameScript
             return;
         }
 
-        public void AddWarning(string Text)
+        public int AddWarning(string Text)
         {
             //WARNING:Energy = Low Battery!:1;
 
             CDData.Add(new CDValues { Name = ModuleName, Tag = "WARNING", Value = Text, Value2 = WMessageID.ToString() });
             WMessageID++;
-            return;
+            return WMessageID;
         }
         #endregion
 
@@ -588,17 +634,63 @@ namespace IngameScript
 
         #region main
 
-        #region Script specific Settings
+        #region Script specific Values
         //edit per new  modul 
-        double Version = 0.0; //0.0 = BASE!
+        double Version = 0.2; 
+        bool PreemergencyMode = false;
+        bool PreemergencyModeOverride = false;
+        bool EmergencyMode = false;
+        bool EmergencyModeOverride = false;
+        bool UranSaveMode = false;
+        bool UranSaveModeOverride = false;
+        bool EnableEmergencyShutoff = false;
+        int EmergencyModeSetting = -1;
+        string EmergencyModeSettingRange;
+        int UranSavingSetting = -1;
+        string UranSavingSettingRange;
+        IMyBatteryBlock EmergengyBattery;
 
         public void WriteNewCustomData()
         {
+            /*
+        int ReactorRunning = -1;
+        int AllReactorsCount = -1;
+        float PowerUsed = -1;
+        float MaxPower = -1;
+        string PowerUsageIndicator = "[]";
+        int SolarPanelsRunning = -1;
+        int SolarAllCount = -1;
+        float SolarOutput = -1;
+        float SolarMaxOutput = -1;
+        string SolarPowerIndicator = "[]";
+        int BatteryCountRunning = -1;
+        int BatteryAllCount = -1;
+        float BatteryMaxLoad = -1;
+        float BatteryCurrentLoad = -1;
+        string BatteryLoadIndicator = "[]";
+        float BatteryInput = -1;
+        float BatterOutput = -1;
+        string BatteryInputOutPutIndicator = "[]";
+        int BatteryLoadPercent = -1;
+            */
             string Out = "INFO:ModulName = " + ModuleName + Environment.NewLine;
-            Out = Out + "SETTING:EnergySaverMode = On:On|Off;" + Environment.NewLine;
-            Out = Out + "SETTING:UranSaverMode = Off:On|Off;" + Environment.NewLine;
-            Out = Out + "Setting:EmergencyMode = Off:On|Off;" + Environment.NewLine;
-
+            Out = Out + "SETTING:UranSaverModeOverride = Off:On|Off;" + Environment.NewLine;
+            Out = Out + "SETTING:EmergencyModeOverride = Off:On|Off;" + Environment.NewLine;
+            Out = Out + "SETTING:PreEmergencyModeOverride = Off:On|Off;" + Environment.NewLine;
+            Out = Out + "SETTING:EmergencyModeSetting = 20:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
+            Out = Out + "SETTING:UranSaveModeSetting = 50:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
+            Out = Out + "INFO:ReactorRunning = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:PowerUsed = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:MaxPower = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:SolarPanelsRunning = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:SolarOutput = Loading.." + Environment.NewLine;
+            //Out = Out + "INFO:SolarMaxOutput = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:BatteryCountRunning = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:BatteryMaxLoad = Loading.." + Environment.NewLine;
+           // Out = Out + "INFO:BatteryCurrentLoad = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:BatteryInput = Loading.." + Environment.NewLine;
+           // Out = Out + "INFO:BatteryOutput = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:BatteryLoadPercent = Loading.." + Environment.NewLine;
             Me.CustomData = Out;
 
         }
@@ -623,7 +715,11 @@ namespace IngameScript
                 Findblocks();
             }
 
-            
+            if(Tick == 5)
+            {
+                ReadSetting();
+                UseSettings();
+            }
 
 
 
@@ -642,10 +738,1046 @@ namespace IngameScript
         #endregion
 
 
-
+        #region Settings
         
+        public void ReadSetting()
+        {
+            foreach(CDValues Value in CDData)
+            {
+                if (Value.Tag == "SETTING")
+                {
+                    if (Value.Name.Contains("UranSaveModeSetting"))
+                    {
+                        if (Value.Value == "Off")
+                        {
+                            UranSaveMode = false;
 
-       
+                        }
+                        else
+                        {
+
+                            UranSaveMode = true;
+                            try
+                            {
+                                UranSavingSetting = Convert.ToInt32(Value.Value);
+                            }
+                            catch (FormatException e)
+                            {
+                                Echo("Wrong Value FOrmat!1");
+                            }
+                        }
+                    }
+                    if (Value.Name.Contains("EmergencyModeSetting"))
+                    {
+                        if (Value.Value == "Off")
+                        {
+                            EmergencyMode = false;
+
+                        }
+                        else
+                        {
+                            EmergencyMode = true;
+
+                            try
+                            {
+                                EmergencyModeSetting = Convert.ToInt32(Value.Value);
+                            }
+                            catch (FormatException e)
+                            {
+                                Echo("Wrong Value FOrmat!2");
+                            }
+
+
+                        }
+                    }
+                    if (Value.Name.Contains("PreEmergencyModeOverride"))
+                    {
+                        if (Value.Value == "On")
+                        {
+                            PreemergencyModeOverride = true;
+
+                        }
+                        else if (Value.Value == "Off")
+                        {
+                            PreemergencyModeOverride = false;
+                        }
+                    }
+                    if (Value.Name.Contains("EmergencyModeOverride"))
+                    {
+                        if (Value.Value == "On")
+                        {
+                            EmergencyModeOverride = true;
+                            EmergencyMode = true;
+                            EmergencymodeFunc(true);
+
+                        }
+                        else if (Value.Value == "Off")
+                        {
+                            EmergencyModeOverride = false;
+                            EmergencyMode = false;
+                            EmergencymodeFunc(false);
+                        }
+                    }
+                    if (Value.Name.Contains("UranSaverModeOverride"))
+                    {
+                        if (Value.Value == "On")
+                        {
+                            UranSaveModeOverride = true;
+                            UranSaverModeFunc(true);
+                        }
+                        else if (Value.Value == "Off")
+                        {
+                            UranSaveModeOverride = false;
+                            UranSaverModeFunc(false);
+                        }
+                    }
+                }else if(Value.Tag == "INFO")
+                { 
+
+                    if (Value.Name.Contains("ReactorRunning"))
+                    {
+                        Value.Value = ReactorRunning.ToString() + "/" + AllReactorsCount;
+                    }
+                    if (Value.Name.Contains("PowerUsed"))
+                    {
+                        Value.Value = PowerUsed.ToString() +" " + PowerUsageIndicator + "" + MaxPower;
+                    }
+                    if (Value.Name.Contains("SolarPanelsRunning"))
+                    {
+                        Value.Value = SolarPanelsRunning.ToString() + "/" + SolarAllCount;
+                    }
+                    if (Value.Name.Contains("SolarOutput"))
+                    {
+                        Value.Value = SolarOutput.ToString() + " " + SolarPowerIndicator + " " + SolarMaxOutput;
+                    }
+                    /*
+                    if (Value.Name.Contains("SolarMaxOutput"))
+                    {
+                        Value.Value = SolarMaxOutput.ToString();
+                    }
+                    */
+                    if (Value.Name.Contains("BatteryCountRunning"))
+                    {
+                        Value.Value = BatteryCountRunning.ToString() + "/" + BatteryAllCount;
+                    }
+                    if (Value.Name.Contains("BatteryMaxLoad"))
+                    {
+                        Value.Value = BatteryCurrentLoad.ToString() + " " + BatteryLoadIndicator + " " + BatteryMaxLoad;
+                    }
+                    /*
+                    if (Value.Name.Contains("BatteryCurrentLoad"))
+                    {
+                        Value.Value = BatteryCurrentLoad.ToString();
+                    }
+                    */
+                    if (Value.Name.Contains("BatteryInput"))
+                    {
+                        Value.Value = BatteryInput.ToString() + " " + BatteryInputOutPutIndicator + " " + BatterOutput;
+                    }
+                    /*
+                    if (Value.Name.Contains("BatteryOutput"))
+                    {
+                        Value.Value = BatteryInput.ToString();
+                    }
+                    */
+                    if (Value.Name.Contains("BatteryLoadPercent"))
+                    {
+                        Value.Value = BatteryLoadPercent.ToString() + "%";
+                    }
+
+                }
+
+
+
+            }
+
+            return;
+        }
+
+        public void UseSettings()
+        {
+
+            if (EmergencyMode)
+            {
+                if (BatteryLoadPercent >= EmergencyModeSetting)
+                {
+                    EmergencymodeFunc(false);
+
+                }
+                else
+                {
+                    EmergencymodeFunc(true);
+                }
+            }
+
+            if (UranSaveMode)
+            {
+                if (BatteryLoadPercent >= UranSavingSetting)
+                {
+                    UranSaverModeFunc(false);
+                }
+                else
+                {
+                    UranSaverModeFunc(true);
+                }
+            }
+
+            if(EmergencyModeOverride)
+            {
+                EmergencymodeFunc(true);
+            }
+
+            if(UranSaveModeOverride)
+            {
+                UranSaverModeFunc(true);
+            }
+
+           // TODO: Settings anpassen, auserdem reaktion auf füllstand von Batterien
+        }
+        int EmergencyMessageId = -1;
+        int UNEmergencyMessageId = -1;
+        List<IMyTerminalBlock> AllDisabeldEmergency = new List<IMyTerminalBlock>();
+        List<IMyTerminalBlock> AllEnabeldEmergency = new List<IMyTerminalBlock>();
+        public void EmergencymodeFunc(bool Activate)
+        {
+            //TODO: Blöcke speichern in liste wenn sie an waren wie bei UnranSaving
+            int Test = -1;
+            int I = 0;
+            if (Activate)
+            {
+                I = 0;
+                Test = -1;
+                EmergencyMessageId = AddWarning("Warning! Energy Emergency Activated!Only Emergency Battery is On!");
+                if (UNEmergencyMessageId != -1)
+                {
+                    foreach (CDValues Value in CDData)
+                    {
+                        try
+                        {
+                            Test = Convert.ToInt32(Value.Value2);
+                        }
+                        catch (FormatException e)
+                        {
+
+                            Echo("Wrong ID Format!");
+                            return;
+                        }
+
+                        if (Test == UNEmergencyMessageId)
+                        {
+                            CDData.RemoveAt(I);
+                            break;
+                        }
+
+                        I++;
+                    }
+                }
+
+                foreach (IMyReactor Block in AllReactors)
+                {
+                    if(!Block.Enabled)
+                    {
+                        Block.Enabled = true;
+                        AllDisabeldEmergency.Add(Block);
+                    }
+                }
+                foreach(IMyBatteryBlock Block in AllBatterys)
+                {
+                    if(EmergengyBattery == Block)
+                    {
+                        Echo("Enable emergency Battery..");
+                        Block.Enabled = true;
+                        EmergengyBattery.ChargeMode = ChargeMode.Auto;
+                    }
+                    else
+                    {
+                            Block.ChargeMode = ChargeMode.Recharge;
+                            Block.Enabled = true;
+                        
+                    }
+                }
+                foreach(IMyRefinery Block in AllRefinerys)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach(IMyAssembler Block in AllAssembler)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach(IMyAirVent Block in AllAirVents)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach(IMyRadioAntenna Block in AllAntennas)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+
+                }
+                foreach (IMyMotorStator Block in AllRotors)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyArtificialMassBlock Block in AllMass)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyBeacon Block in AllBeacons)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyLargeInteriorTurret Block in AllIntTurrets)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyLargeGatlingTurret Block in AllLargeGatlingTurrets)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMySmallGatlingGun Block in AllSmallGatlinTurrets)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyLargeMissileTurret Block in AllLargeMissleturrets)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMySmallMissileLauncher Block in AllSmallMissleturrets)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMySmallMissileLauncherReload Block in AllSmallRocketLauncher)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyInteriorLight Block in AllLights)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyJumpDrive Block in AllJumpDrives)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyLaserAntenna Block in AllLaserAntennas)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyOreDetector Block in AllOreDetector)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyOxygenFarm Block in AllOxygenFarms)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyGasGenerator Block in AllOxygenGenerators)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyProjector Block in AllProjectors)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyGravityGenerator Block in AllGravityGenerators)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyGravityGeneratorSphere Block in AllGravityGeneratorsSphere)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyShipGrinder Block in AllGrinder)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyShipDrill Block in AllDrills)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+                foreach (IMyShipWelder Block in AllWelder)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+
+               return;
+            }
+            else
+            {
+                I = 0;
+                Test = -1;
+                UNEmergencyMessageId = AddWarning("Emergency Mode Deactivated...");
+
+                if (EmergencyMessageId != -1)
+                {
+                    foreach (CDValues Value in CDData)
+                    {
+                        try
+                        {
+                            Test = Convert.ToInt32(Value.Value2);
+                        } catch (FormatException e)
+                        {
+
+                            Echo("Wrong ID Format!");
+                            return;
+                        }
+
+                        if (Test == EmergencyMessageId)
+                        {
+                            CDData.RemoveAt(I);
+                            break;
+                        }
+
+                        I++;
+                    }
+                }
+
+                foreach (IMyReactor Block in AllReactors)
+                {
+                    if(AllDisabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = false;
+                        AllDisabeldEmergency.Remove(Block);
+                    }
+                }
+               
+            foreach (IMyBatteryBlock Block in AllBatterys)
+                {
+                    if (EmergengyBattery == Block)
+                    {
+                        Echo("Enable emergency Battery..");
+                        Block.Enabled = true;
+                        EmergengyBattery.ChargeMode = ChargeMode.Recharge;
+                    }
+                    else
+                    {
+                        Block.ChargeMode = ChargeMode.Auto;
+                        Block.Enabled = true;
+                    }
+                }
+                foreach (IMyRefinery Block in AllRefinerys)
+                {
+                    if(AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyAssembler Block in AllAssembler)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyAirVent Block in AllAirVents)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyRadioAntenna Block in AllAntennas)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+
+                }
+                foreach (IMyMotorStator Block in AllRotors)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyArtificialMassBlock Block in AllMass)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyBeacon Block in AllBeacons)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyLargeInteriorTurret Block in AllIntTurrets)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyLargeGatlingTurret Block in AllLargeGatlingTurrets)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMySmallGatlingGun Block in AllSmallGatlinTurrets)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyLargeMissileTurret Block in AllLargeMissleturrets)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMySmallMissileLauncher Block in AllSmallMissleturrets)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMySmallMissileLauncherReload Block in AllSmallRocketLauncher)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyInteriorLight Block in AllLights)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyJumpDrive Block in AllJumpDrives)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyLaserAntenna Block in AllLaserAntennas)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyOreDetector Block in AllOreDetector)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyOxygenFarm Block in AllOxygenFarms)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyGasGenerator Block in AllOxygenGenerators)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyProjector Block in AllProjectors)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyGravityGenerator Block in AllGravityGenerators)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyGravityGeneratorSphere Block in AllGravityGeneratorsSphere)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyShipGrinder Block in AllGrinder)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyShipDrill Block in AllDrills)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                foreach (IMyShipWelder Block in AllWelder)
+                {
+                    if (AllEnabeldEmergency.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllEnabeldEmergency.Remove(Block);
+                    }
+                }
+                return;
+            }
+        }
+
+        List<IMyTerminalBlock> AllDisabeld = new List<IMyTerminalBlock>();
+        List<IMyTerminalBlock> AllEnabeld = new List<IMyTerminalBlock>();
+        public void UranSaverModeFunc(bool Activate)
+        {
+
+            if(Activate)
+            {
+                foreach(IMyReactor Block in AllReactors)
+                {
+                    if (!Block.Enabled)
+                    {
+                        Block.Enabled = true;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+
+                foreach(IMySolarPanel Block in AllSolarPanels)
+                {
+                    if (!Block.Enabled)
+                    {
+                        Block.Enabled = true;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+
+                foreach(IMyBatteryBlock Block in AllBatterys)
+                {
+                    if (!Block.Enabled)
+                    {
+                        Block.Enabled = true;
+                        AllEnabeld.Add(Block);
+                    }
+                }
+
+                foreach(IMyRefinery Block in AllRefinerys)
+                {
+                    if(Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllDisabeld.Add(Block);
+                    }
+
+                }
+
+                foreach(IMyAssembler Block in AllAssembler)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllDisabeld.Add(Block);
+                    }
+                }
+
+                foreach(IMyShipDrill Block in AllDrills)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllDisabeld.Add(Block);
+                    }
+                }
+
+                foreach(IMyShipGrinder Block in AllGrinder)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllDisabeld.Add(Block);
+                    }
+                }
+
+                foreach(IMyBeacon Block in AllBeacons)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllDisabeld.Add(Block);
+                    }
+                }
+                foreach(IMyRadioAntenna Block in AllAntennas)
+                {
+                    if (Block.Enabled)
+                    {
+                        Block.Enabled = false;
+                        AllDisabeld.Add(Block);
+                    }
+                }
+                return;
+            }
+            else
+            {
+
+                foreach (IMyReactor Block in AllReactors)
+                {
+                    if(AllEnabeld.Contains(Block))
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Remove(Block);
+                    }
+                }
+
+                foreach (IMySolarPanel Block in AllSolarPanels)
+                {
+                    if (AllEnabeld.Contains(Block))
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Remove(Block);
+                    }
+                }
+
+                foreach (IMyBatteryBlock Block in AllBatterys)
+                {
+                    if (AllEnabeld.Contains(Block))
+                    {
+                        Block.Enabled = false;
+                        AllEnabeld.Remove(Block);
+                    }
+                }
+
+                foreach (IMyRefinery Block in AllRefinerys)
+                {
+                    if(AllDisabeld.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllDisabeld.Remove(Block);
+                    }
+
+                }
+
+                foreach (IMyAssembler Block in AllAssembler)
+                {
+                    if (AllDisabeld.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllDisabeld.Remove(Block);
+                    }
+                }
+
+                foreach (IMyShipDrill Block in AllDrills)
+                {
+                    if (AllDisabeld.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllDisabeld.Remove(Block);
+                    }
+                }
+
+                foreach (IMyShipGrinder Block in AllGrinder)
+                {
+                    if (AllDisabeld.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllDisabeld.Remove(Block);
+                    }
+                }
+
+                foreach (IMyBeacon Block in AllBeacons)
+                {
+                    if (AllDisabeld.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllDisabeld.Remove(Block);
+                    }
+                }
+                foreach (IMyRadioAntenna Block in AllAntennas)
+                {
+                    if (AllDisabeld.Contains(Block))
+                    {
+                        Block.Enabled = true;
+                        AllDisabeld.Remove(Block);
+                    }
+                }
+                AllEnabeld.Clear();
+                AllDisabeld.Clear();
+                return;
+            }
+
+        }
+
+
+        #endregion
+
+
+        #region EnergyData
+        int ReactorRunning = -1;
+        int AllReactorsCount = -1;
+        float PowerUsed = -1;
+        float MaxPower = -1;
+        string PowerUsageIndicator = "[]";
+        int SolarPanelsRunning = -1;
+        int SolarAllCount = -1;
+        float SolarOutput = -1;
+        float SolarMaxOutput = -1;
+        string SolarPowerIndicator = "[]";
+        int BatteryCountRunning = -1;
+        int BatteryAllCount = -1;
+        float BatteryMaxLoad = -1;
+        float BatteryCurrentLoad = -1;
+        string BatteryLoadIndicator = "[]";
+        float BatteryInput = -1;
+        float BatterOutput = -1;
+        string BatteryInputOutPutIndicator = "[]";
+        int BatteryLoadPercent = -1;
+
+
+        public void GetEnergyData()
+        {
+             ReactorRunning = -1;
+             AllReactorsCount = -1;
+             PowerUsed = -1;
+             MaxPower = -1;
+             PowerUsageIndicator = "[]";
+             SolarPanelsRunning = -1;
+             SolarAllCount = -1;
+             SolarOutput = -1;
+             SolarMaxOutput = -1;
+             SolarPowerIndicator = "[]";
+             BatteryCountRunning = -1;
+             BatteryAllCount = -1;
+             BatteryMaxLoad = -1;
+             BatteryCurrentLoad = -1;
+             BatteryLoadIndicator = "[]";
+             BatteryInput = -1;
+             BatterOutput = -1;
+             BatteryInputOutPutIndicator = "[]";
+             BatteryLoadPercent = -1;
+
+
+            foreach (IMyReactor Block in AllReactors)
+            {
+                if(Block.Enabled)
+                {
+                    ReactorRunning++;
+                }
+                PowerUsed = PowerUsed + Block.CurrentOutput;
+                MaxPower = MaxPower + Block.MaxOutput;
+
+            }
+            int MaxPowerINT = Convert.ToInt32(MaxPower);
+            int PowerUsedINT = Convert.ToInt32(PowerUsed);
+            int Perc = ReturnPercent(MaxPowerINT, PowerUsedINT);
+            PowerUsageIndicator = ReturnIndicator(Perc);
+
+            foreach (IMySolarPanel Block in AllSolarPanels)
+            {
+                if(Block.Enabled)
+                {
+                    SolarPanelsRunning++;
+                }
+                SolarOutput = SolarOutput + Block.CurrentOutput;
+                SolarMaxOutput = SolarMaxOutput + Block.MaxOutput;
+
+            }
+            int Max = Convert.ToInt32(SolarMaxOutput);
+            int Current = Convert.ToInt32(SolarMaxOutput);
+            int Perc2 = ReturnPercent(Max, Current);
+            SolarPowerIndicator = ReturnIndicator(Perc);
+
+
+
+            foreach (IMyBatteryBlock Block in AllBatterys)
+            {
+                if(Block.Enabled)
+                {
+                    BatteryCountRunning++;
+                }
+                BatterOutput = BatterOutput + Block.CurrentOutput;
+                BatteryInput = BatteryInput + Block.CurrentInput;
+                BatteryCurrentLoad = BatteryCurrentLoad + Block.CurrentStoredPower;
+                BatteryMaxLoad = BatteryMaxLoad + Block.MaxStoredPower;
+
+            }
+            int BatteryMaxLoadInt = Convert.ToInt32(BatteryMaxLoad);
+            int BatteryLoadInt = Convert.ToInt32(BatteryCurrentLoad);
+            BatteryLoadPercent = ReturnPercent(BatteryMaxLoadInt, BatteryLoadInt);
+            BatteryLoadIndicator = ReturnIndicator(BatteryLoadPercent);
+            return;
+        }
+
+        public string ReturnIndicator(int Percent)
+        {
+
+            string Out = "[";
+            int Mathe = 0;
+
+            Mathe = (Percent / 5);
+            //Mathe = Math.Round(Mathe);
+            int I = 0;
+            do
+            {
+                if (I < Mathe)
+                {
+                    Out = Out + "|";
+                }
+                else
+                {
+                    Out = Out + " ";
+                }
+                I++;
+
+            } while (I < 20);
+            Out = Out + "]";
+
+            // string Out = "";
+            return Out;
+        }
+
+        public int ReturnPercent(int Max, int Current)
+        {
+            int Percent = -1;
+            int Math = (Max / 100);
+            Percent = (Current / Math);
+
+
+            return Percent;
+        }
+
+
+
+        #endregion
 
     }
 }

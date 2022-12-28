@@ -7,7 +7,7 @@ turn emergencybattery off under 30% of all batterys
 
 energy saver mode to turn reaktor on when battery under X energy
 
-enertgy stats
+energy stats
 
 
 
