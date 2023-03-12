@@ -33,7 +33,8 @@ namespace IngameScript
         #region Settings
         int MaxTicks = 10;
         string ModuleName = "Energy";
-
+        int MaxLoggerRows = 200;//Set this too high will cause lag
+        string MainLCDName = "MainLCD"; //LCD here used to Temp Logging
         #endregion
 
 
@@ -111,7 +112,7 @@ namespace IngameScript
 
 
         #region Startup
-        bool CustomDataEmpty = false;
+
         public Program()
         {
             Runtime.UpdateFrequency = UpdateFrequency.Once;
@@ -120,19 +121,14 @@ namespace IngameScript
 
             ReadFromCustomData();
 
-            if(CustomDataEmpty)
-            {
-                WriteNewCustomData();
-                ReadFromCustomData();
-            }
+
 
             Runtime.UpdateFrequency = UpdateFrequency.Update100;
         }
 
-
+        IMyTextPanel DebugLCD;
         public void Findblocks()
         {
-            
             allblocks.Clear();
             AllReactors.Clear();
             AllBatterys.Clear();
@@ -204,7 +200,7 @@ namespace IngameScript
                             if (EmergengyBattery == null)
                             {
                                 EmergengyBattery = Battery;
-                                EmergengyBattery.CustomName = "EmergencyBatter Dont Toutch me!";
+                                EmergengyBattery.CustomName = "EmergencyBattery Dont Toutch me!";
                             }
                         }
                         AllBatterys.Add(Battery);
@@ -446,6 +442,10 @@ namespace IngameScript
                     }
                     if (Block is IMyTextPanel)
                     {
+                        if(Block.CustomName.Contains(MainLCDName))
+                        {
+                            DebugLCD = (IMyTextPanel)Block;
+                        }
                         IMyTextPanel AddBlock = (IMyTextPanel)Block;
                         AllLCD.Add(AddBlock);
                     }
@@ -463,7 +463,6 @@ namespace IngameScript
 
 
             }
-            Runtime.UpdateFrequency = UpdateFrequency.Update100;
             return;
         }
 
@@ -550,50 +549,120 @@ namespace IngameScript
 
         public void ReadFromCustomData()
         {
-            string CD = Me.CustomData;
+            /*
+INFO:ModulName = Energy:;
+SETTING:UranSaverModeOverride = Off:On|Off;
+SETTING:EmergencyModeOverride = Off:On|Off;
+SETTING:PreEmergencyModeOverride = Off:On|Off;
+SETTING:EmergencyModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;
+SETTING:UranSaveModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;
+INFO:ReactorRunning = Loading..:;
+INFO:PowerUsed = Loading..:;
+INFO:MaxPower = Loading..:;
+INFO:SolarPanelsRunning = Loading..:;
+INFO:SolarOutput = Loading..:;
+INFO:BatteryCountRunning = Loading..:;
+INFO:BatteryMaxLoad = Loading..:;
+INFO:BatteryInput = Loading..:;
+INFO:BatteryLoadPercent = Loading..:;
+            */
+
+
+            string CustomData = Me.CustomData;
+            string CD = CustomData.Replace(" ", "");
             if (CD != "")
             {
                 string[] Split = CD.Split(';');
                 if (Split.Length > 1)
                 {
-                    CDData.Clear();
+
+                    //CDData.Clear();
                     foreach (string Data in Split)
                     {
                         string[] Split1 = Data.Split('=');
-                        string[] Split2 = Split[0].Split(';');//vor =
-                        string[] Split3 = Split[1].Split(';');//nach =
-                       
-                        if(Split.Length > 1)
+                        if (Split1.Length > 1)
                         {
-                            if(Split2.Length > 1)
-                            {
-                                CustomDataEmpty = false;
-                                if(Split2.Contains("INFO"))
-                                {
-                                    CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0], Value = Split3[0] });
+ 
+                            string[] Split2 = Split1[0].Split(':');//vor =
+                            string[] Split3 = Split1[1].Split(':');//nach =
 
-
-                                }
-                                else
-                                {
-                                    if(Split3.Length > 1)
+                                    int Index = CDData.FindIndex(a => a.Name == Split2[1]);
+                                    if (Index != -1)
                                     {
-                                        string SecondValue = Split3[1].Replace(";", "");
-                                        CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0], Value = Split3[0], Value2 = Split3[1] });
+                                        if (Split3.Length > 1)
+                                        {
+                                            CDData[Index].Value = Split3[0];
+                                            CDData[Index].Value2 = Split3[1];
+                                        }else if(Split3.Length == 1)
+                                        {
+                                            CDData[Index].Value = Split3[0];
+                                            CDData[Index].Value2 = null;
+                                        }
+                                        else
+                                        {
+                                            CDData[Index].Value = null;
+                                            CDData[Index].Value2 = null;
+
+                                        }
+
 
 
                                     }
-                                }
+                                    else
+                                    {
+                                        if (Split2[1].Contains("INFO"))
+                                        {
+                                            CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0], Value = Split3[0] });
 
-                            }
+
+                                        }
+                                        else
+                                        {
+
+                                    if (Split3.Length > 1)
+                                    {
+                                        CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0], Value = Split3[0], Value2 = Split3[1] });
+                                    }
+                                    else if (Split3.Length == 1)
+                                    {
+                                        CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0], Value = Split3[0] });
+                                    }
+                                    else
+                                    {
+                                        CDData.Add(new CDValues { Name = Split2[1], Tag = Split2[0]});
+                                    }
+                                        }
+
+                                    }
+
+
+                            
+                        }
+                        else
+                        {
+                            //Echo("Wrong Data lenght!");
+                          //  WriteToLog("Info:Wrong Data lenght");
+                            //Me.CustomData = "";
+                           // WriteNewCustomData();
+                            //ReadFromCustomData();
+                            return;
                         }
                     }
+
+                    return;
                 }
                 else
                 {
-                    CustomDataEmpty = true;
+                    WriteNewCustomData();
+                    ReadFromCustomData();
                 }
             }
+            else
+            {
+                WriteNewCustomData();
+                ReadFromCustomData();
+            }
+
             return;
         }
 
@@ -601,13 +670,22 @@ namespace IngameScript
         {
             if(CDData.Count > 0)
             {
+
                 string Out = "";
+                int i= 0;
                 foreach(CDValues Value in CDData)
                 {
-                    Out = Value.Tag + ":" + Value.Name + "=" + Value.Value + ":" + Value.Value2 + ";" ;
+                    if (Value.Value2 != null && Value.Value2 != "")
+                    {
 
+                        Out = Out + Value.Tag + ":" + Value.Name + "=" + Value.Value + ":" + Value.Value2 + ";";
+                    }
+                    else
+                    {
+                        Out = Out + Value.Tag + ":" + Value.Name + "=" + Value.Value + ";";
+                    }
+                    i++;
                 }
-
                 Me.CustomData = Out;
 
             }
@@ -624,11 +702,47 @@ namespace IngameScript
         }
         #endregion
 
-        #region Save
+        #region Save/Logging
         public void Save()
         {
 
         }
+
+        public void WriteToLog(string Text)
+        {
+            if (DebugLCD != null)
+            {
+                string Data = DebugLCD.CustomData;
+                string[] Lines = Data.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                string[] NewData = new string[Lines.Length + 2];
+                DateTime TimeNow = System.DateTime.Now;
+                if (Lines.Length >= MaxLoggerRows - 1)
+                {
+                    if (Lines.Length > 0)
+                    {
+
+                        Array.Copy(Lines, 1, NewData, 0, Lines.Length - 1);
+                    }
+                    NewData[MaxLoggerRows] = TimeNow + ":" + ModuleName + ":" + Text + Environment.NewLine;
+                }
+                else
+                {
+                    if (Lines.Length > 0)
+                    {
+
+                        Array.Copy(Lines, 0, NewData, 0, Lines.Length);
+                    }
+                    NewData[Lines.Length + 1] = TimeNow + ":" + ModuleName + ":" + Text + Environment.NewLine;
+                }
+                DebugLCD.CustomData = string.Join(Environment.NewLine, NewData);
+            }
+            else
+            {
+                Echo("no Logging! no Main LCD found!");
+            }
+            return;
+        }
+
         #endregion
 
 
@@ -673,25 +787,44 @@ namespace IngameScript
         string BatteryInputOutPutIndicator = "[]";
         int BatteryLoadPercent = -1;
             */
-            string Out = "INFO:ModulName = " + ModuleName + Environment.NewLine;
+            string Out = "INFO:ModulName = " + ModuleName + ";" + Environment.NewLine ;
             Out = Out + "SETTING:UranSaverModeOverride = Off:On|Off;" + Environment.NewLine;
             Out = Out + "SETTING:EmergencyModeOverride = Off:On|Off;" + Environment.NewLine;
             Out = Out + "SETTING:PreEmergencyModeOverride = Off:On|Off;" + Environment.NewLine;
-            Out = Out + "SETTING:EmergencyModeSetting = 20:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
-            Out = Out + "SETTING:UranSaveModeSetting = 50:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
-            Out = Out + "INFO:ReactorRunning = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:PowerUsed = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:MaxPower = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:SolarPanelsRunning = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:SolarOutput = Loading.." + Environment.NewLine;
+            Out = Out + "SETTING:EmergencyModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
+            Out = Out + "SETTING:UranSaveModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
+            Out = Out + "INFO:ReactorRunning = Loading..;" + Environment.NewLine;
+            Out = Out + "INFO:PowerUsed = Loading..;" + Environment.NewLine;
+           // Out = Out + "INFO:MaxPower = Loading..;" + Environment.NewLine;
+            Out = Out + "INFO:SolarPanelsRunning = Loading..;" + Environment.NewLine;
+            Out = Out + "INFO:SolarOutput = Loading..;" + Environment.NewLine;
             //Out = Out + "INFO:SolarMaxOutput = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:BatteryCountRunning = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:BatteryMaxLoad = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:BatteryCountRunning = Loading..;" + Environment.NewLine;
+            Out = Out + "INFO:BatteryVoltage = Loading..;" + Environment.NewLine;
            // Out = Out + "INFO:BatteryCurrentLoad = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:BatteryInput = Loading.." + Environment.NewLine;
+           // Out = Out + "INFO:BatteryInput = Loading..;" + Environment.NewLine;
            // Out = Out + "INFO:BatteryOutput = Loading.." + Environment.NewLine;
-            Out = Out + "INFO:BatteryLoadPercent = Loading.." + Environment.NewLine;
+            Out = Out + "INFO:BatteryLoadPercent = Loading..;" + Environment.NewLine;
             Me.CustomData = Out;
+
+
+            /*
+INFO:ModulName = Energy:;
+SETTING:UranSaverModeOverride = Off:On|Off;
+SETTING:EmergencyModeOverride = Off:On|Off;
+SETTING:PreEmergencyModeOverride = Off:On|Off;
+SETTING:EmergencyModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;
+SETTING:UranSaveModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;
+INFO:ReactorRunning = Loading..:;
+INFO:PowerUsed = Loading..:;
+INFO:MaxPower = Loading..:;
+INFO:SolarPanelsRunning = Loading..:;
+INFO:SolarOutput = Loading..:;
+INFO:BatteryCountRunning = Loading..:;
+INFO:BatteryVoltage = Loading..:;
+INFO:BatteryLoadPercent = Loading..:;
+             * 
+             */
 
         }
 
@@ -708,11 +841,13 @@ namespace IngameScript
         int Tick = 0;
         public void DoEveryTime()
         {
-
+            
             if(Tick == 0)
             {
-                WriteToCustomData();
                 Findblocks();
+                ReadFromCustomData();
+                GetEnergyData();
+                WriteToCustomData();
             }
 
             if(Tick == 5)
@@ -1660,87 +1795,292 @@ namespace IngameScript
         float BatterOutput = -1;
         string BatteryInputOutPutIndicator = "[]";
         int BatteryLoadPercent = -1;
+        string BatteryRunningIndicator = "[]";
+        string SolarRunningIndicator = "[]";
+        string ReactorRunningIndiscator = "[]";
+
+
 
 
         public void GetEnergyData()
         {
-             ReactorRunning = -1;
-             AllReactorsCount = -1;
-             PowerUsed = -1;
-             MaxPower = -1;
+
+            ReactorRunning = 0;
+             AllReactorsCount = 0;
+             PowerUsed = 0;
+             MaxPower = 0;
              PowerUsageIndicator = "[]";
-             SolarPanelsRunning = -1;
-             SolarAllCount = -1;
-             SolarOutput = -1;
-             SolarMaxOutput = -1;
+             SolarPanelsRunning = 0;
+             SolarAllCount = 0;
+             SolarOutput = 0;
+             SolarMaxOutput = 0;
              SolarPowerIndicator = "[]";
-             BatteryCountRunning = -1;
-             BatteryAllCount = -1;
-             BatteryMaxLoad = -1;
-             BatteryCurrentLoad = -1;
+             BatteryCountRunning = 0;
+             BatteryAllCount = 0;
+             BatteryMaxLoad = 0;
+             BatteryCurrentLoad = 0;
              BatteryLoadIndicator = "[]";
-             BatteryInput = -1;
-             BatterOutput = -1;
+             BatteryInput = 0;
+             BatterOutput = 0;
              BatteryInputOutPutIndicator = "[]";
-             BatteryLoadPercent = -1;
+             BatteryLoadPercent = 0;
+             BatteryRunningIndicator = "[]";
+             SolarRunningIndicator = "[]";
+             ReactorRunningIndiscator = "[]";
 
-
-            foreach (IMyReactor Block in AllReactors)
+            if (AllReactors.Count > 0)
             {
-                if(Block.Enabled)
+                foreach (IMyReactor Block in AllReactors)
                 {
-                    ReactorRunning++;
+                    if (Block.Enabled)
+                    {
+                        ReactorRunning++;
+                    }
+                    PowerUsed = PowerUsed + Block.CurrentOutput;
+                    MaxPower = MaxPower + Block.MaxOutput;
+
                 }
-                PowerUsed = PowerUsed + Block.CurrentOutput;
-                MaxPower = MaxPower + Block.MaxOutput;
+                int Max22 = AllReactors.Count;
+                int Current22 = ReactorRunning;
+                int Perc22 = ReturnPercent(Max22, Current22);
+                ReactorRunningIndiscator = ReturnIndicator(Perc22);
+
+
+
+                int Max = Convert.ToInt32(MaxPower);
+                int Current = Convert.ToInt32(PowerUsed);
+                if (Max != -1 && Current != -1)
+                {
+                    int Perc = ReturnPercent(Max, Current);
+
+                    PowerUsageIndicator = ReturnIndicator(Perc);
+                }
+                else
+                {
+                    PowerUsageIndicator = ReturnIndicator(0);
+                }
 
             }
-            int MaxPowerINT = Convert.ToInt32(MaxPower);
-            int PowerUsedINT = Convert.ToInt32(PowerUsed);
-            int Perc = ReturnPercent(MaxPowerINT, PowerUsedINT);
-            PowerUsageIndicator = ReturnIndicator(Perc);
 
-            foreach (IMySolarPanel Block in AllSolarPanels)
+            if (AllSolarPanels.Count > 0)
             {
-                if(Block.Enabled)
+                foreach (IMySolarPanel Block in AllSolarPanels)
                 {
-                    SolarPanelsRunning++;
+                    if (Block.Enabled)
+                    {
+                        SolarPanelsRunning++;
+                    }
+                    SolarOutput = SolarOutput + Block.CurrentOutput;
+                    SolarMaxOutput = SolarMaxOutput + Block.MaxOutput;
+
                 }
-                SolarOutput = SolarOutput + Block.CurrentOutput;
-                SolarMaxOutput = SolarMaxOutput + Block.MaxOutput;
+                int Max22 = AllSolarPanels.Count;
+                int Current22 = SolarPanelsRunning;
+                int Perc22 = ReturnPercent(Max22, Current22);
+                SolarRunningIndicator = ReturnIndicator(Perc22);
+
+                int Max = Convert.ToInt32(SolarMaxOutput);
+                int Current = Convert.ToInt32(SolarOutput);
+                if (Max != -1 && Current != -1)
+                {
+
+                    int Perc = ReturnPercent(Max, Current);
+
+                    SolarPowerIndicator = ReturnIndicator(Perc);
+                }
+                else
+                {
+                    SolarPowerIndicator = ReturnIndicator(0);
+                }
 
             }
-            int Max = Convert.ToInt32(SolarMaxOutput);
-            int Current = Convert.ToInt32(SolarMaxOutput);
-            int Perc2 = ReturnPercent(Max, Current);
-            SolarPowerIndicator = ReturnIndicator(Perc);
 
-
-
-            foreach (IMyBatteryBlock Block in AllBatterys)
+            if (AllBatterys.Count > 0)
             {
-                if(Block.Enabled)
+                foreach (IMyBatteryBlock Block in AllBatterys)
                 {
-                    BatteryCountRunning++;
+                    if (Block.Enabled)
+                    {
+                        BatteryCountRunning++;
+                    }
+                    BatterOutput = BatterOutput + Block.CurrentOutput;
+                    BatteryInput = BatteryInput + Block.CurrentInput;
+                    BatteryCurrentLoad = BatteryCurrentLoad + Block.CurrentStoredPower;
+                    BatteryMaxLoad = BatteryMaxLoad + Block.MaxStoredPower;
+                    BatteryAllCount = AllBatterys.Count;
                 }
-                BatterOutput = BatterOutput + Block.CurrentOutput;
-                BatteryInput = BatteryInput + Block.CurrentInput;
-                BatteryCurrentLoad = BatteryCurrentLoad + Block.CurrentStoredPower;
-                BatteryMaxLoad = BatteryMaxLoad + Block.MaxStoredPower;
+
+                int Max22 = AllBatterys.Count;
+                int Current22 = BatteryCountRunning;
+                int Perc22 = ReturnPercent(Max22, Current22);
+                BatteryRunningIndicator = ReturnIndicator(Perc22);
+
+                int Max = Convert.ToInt32(BatteryMaxLoad);
+                int Current = Convert.ToInt32(BatteryCurrentLoad);
+                    int Perc = ReturnPercent(Max, Current);
+                BatteryLoadPercent = Perc;
+                BatteryLoadIndicator = ReturnIndicator(Perc);
+ 
 
             }
-            int BatteryMaxLoadInt = Convert.ToInt32(BatteryMaxLoad);
-            int BatteryLoadInt = Convert.ToInt32(BatteryCurrentLoad);
-            BatteryLoadPercent = ReturnPercent(BatteryMaxLoadInt, BatteryLoadInt);
-            BatteryLoadIndicator = ReturnIndicator(BatteryLoadPercent);
+
+            /*
+INFO:ModulName = Energy:;
+SETTING:UranSaverModeOverride = Off:On|Off;
+SETTING:EmergencyModeOverride = Off:On|Off;
+SETTING:PreEmergencyModeOverride = Off:On|Off;
+SETTING:EmergencyModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;
+SETTING:UranSaveModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;
+INFO:ReactorRunning = Loading..:;
+INFO:PowerUsed = Loading..:;
+INFO:MaxPower = Loading..:;
+INFO:SolarPanelsRunning = Loading..:;
+INFO:SolarOutput = Loading..:;
+INFO:BatteryCountRunning = Loading..:;
+INFO:BatteryVoltage = Loading..:;
+INFO:BatteryLoadPercent = Loading..:;
+*/
+
+            foreach (CDValues Data in CDData)
+            {
+
+                if(Data.Name == "ReactorRunning")
+                {
+                    if (AllReactors.Count > 0)
+                    {
+                        int Perc = ReturnPercent(AllReactors.Count, ReactorRunning);
+                        Data.Value = ReactorRunning + "/" + AllReactors.Count + Environment.NewLine + ReactorRunningIndiscator + " " + Perc + "%";
+                    }
+                    else
+                    {
+                        Data.Value = "No Data";
+                    }
+                }
+
+                if(Data.Name == "PowerUsed")
+                {
+                    if (AllReactors.Count > 0)
+                    {
+                        int Max = Convert.ToInt32(MaxPower);
+                        int Current = Convert.ToInt32(PowerUsed);
+
+
+                        int Perc = ReturnPercent(Max, Current);
+                        Data.Value = PowerUsed + "/" + MaxPower + " MwH" + Environment.NewLine + PowerUsageIndicator + " " + Perc + "%";
+                    }
+                    else
+                    {
+                        Data.Value = "No Data";
+                    }
+
+                }
+
+                if (Data.Name == "SolarPanelsRunning")
+                {
+                    if (AllSolarPanels.Count > 0)
+                    {
+                        int Max = Convert.ToInt32(AllSolarPanels.Count);
+                        int Current = Convert.ToInt32(SolarPanelsRunning);
+                        int Perc = ReturnPercent(Max, Current);
+                        Data.Value = SolarPanelsRunning + "/" + AllSolarPanels.Count + Environment.NewLine + SolarRunningIndicator + " " + Perc + "%" ;
+                    }
+                    else
+                    {
+                        Data.Value = "No Data";
+                    }
+                }
+
+                if (Data.Name == "SolarOutput")
+                {
+                    if (AllSolarPanels.Count > 0)
+                    {
+                        int Max = Convert.ToInt32(SolarMaxOutput);
+                        int Current = Convert.ToInt32(SolarOutput);
+                        double maxMath = SolarMaxOutput * 1000 / AllSolarPanels.Count;
+                        double currentMath = SolarOutput * 1000 / AllSolarPanels.Count;
+
+                        double maxfix = Math.Round(maxMath, 2);
+                        double currentfix = Math.Round(currentMath, 2);
+
+                        
+
+                        int Perc = ReturnPercent(Max, Current);
+                        Data.Value = currentfix + "/" + maxfix + " kW"+ Environment.NewLine + SolarPowerIndicator + " " + Perc + "%";
+                    }
+                    else
+                    {
+                        Data.Value = "No Data";
+                    }
+                }
+
+                if (Data.Name == "BatteryCountRunning")
+                {
+                    if (AllBatterys.Count > 0)
+                    {
+                        int Max = Convert.ToInt32(BatteryAllCount);
+                        int Current = Convert.ToInt32(BatteryCountRunning);
+                        int Perc = ReturnPercent(Max, Current);
+                        Data.Value = BatteryCountRunning + "/" + BatteryAllCount + Environment.NewLine + BatteryRunningIndicator + " " + Perc + "%";
+                    }
+                    else
+                    {
+                        Data.Value = "No Data";
+                    }
+                }
+
+                if (Data.Name == "BatteryVoltage")
+                {
+                    if (AllBatterys.Count > 0)
+                    {
+                       
+                        int Input = Convert.ToInt32(BatteryInput);
+                        int Output = Convert.ToInt32(BatterOutput);
+                        double InputMath = BatteryInput * 1000 / AllBatterys.Count;
+                        double OutPutMath = BatterOutput * 1000 / AllBatterys.Count;
+
+                        double Inputfix = Math.Round(InputMath,2);
+                        double Outputfix = Math.Round(OutPutMath,2);
+
+                        Data.Value =  "(In/Out )" + Environment.NewLine + Inputfix + " / " + Outputfix + " kW";
+                    }
+                    else
+                    {
+                        Data.Value = "No Data";
+                    }
+                }
+
+                if (Data.Name == "BatteryLoadPercent")
+                {
+                    if (AllBatterys.Count > 0)
+                    {
+
+                        Data.Value = BatteryCurrentLoad + "/" + BatteryMaxLoad + " MWH" + Environment.NewLine + BatteryLoadIndicator + " " + BatteryLoadPercent + "%";
+                    }
+                    else
+                    {
+                        Data.Value = "No Data";
+                    }
+                }
+
+            }
+ 
+
+
+
             return;
         }
 
         public string ReturnIndicator(int Percent)
         {
 
-            string Out = "[";
+            string Out = "[|";
             int Mathe = 0;
+            if(Percent == 0)
+            {
+                Out  = Out + "                    ]";
+                return Out;
+            }
+
 
             Mathe = (Percent / 5);
             //Mathe = Math.Round(Mathe);
@@ -1766,12 +2106,21 @@ namespace IngameScript
 
         public int ReturnPercent(int Max, int Current)
         {
-            int Percent = -1;
-            int Math = (Max / 100);
-            Percent = (Current / Math);
+            if(Current == Max)
+            {
 
+                return 100;
+            }
+            double Percent = 0;
+            double Math = (Max / 100);
+            int PercentInt = 0;
+            if (Math != 0)
+            {
+                Percent = (Current / Math);
+                PercentInt = Convert.ToInt32(Percent);
+            }
 
-            return Percent;
+            return PercentInt;
         }
 
 
