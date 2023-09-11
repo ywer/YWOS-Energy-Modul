@@ -790,7 +790,7 @@ INFO:BatteryLoadPercent = Loading..:;
             string Out = "INFO:ModulName = " + ModuleName + ";" + Environment.NewLine ;
             Out = Out + "SETTING:UranSaverModeOverride = Off:On|Off;" + Environment.NewLine;
             Out = Out + "SETTING:EmergencyModeOverride = Off:On|Off;" + Environment.NewLine;
-            Out = Out + "SETTING:PreEmergencyModeOverride = Off:On|Off;" + Environment.NewLine;
+            //Out = Out + "SETTING:PreEmergencyModeOverride = Off:On|Off;" + Environment.NewLine;
             Out = Out + "SETTING:EmergencyModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
             Out = Out + "SETTING:UranSaveModeSetting = Off:10|20|30|40|50|60|70|80|90|Off;" + Environment.NewLine;
             Out = Out + "INFO:ReactorRunning = Loading..;" + Environment.NewLine;
@@ -1031,32 +1031,45 @@ INFO:BatteryLoadPercent = Loading..:;
 
         public void UseSettings()
         {
-
-            if (EmergencyMode)
+            if (!EmergencyModeOverride)
             {
-                if (BatteryLoadPercent >= EmergencyModeSetting)
+                if (EmergencyMode)
                 {
-                    EmergencymodeFunc(false);
+                    if (BatteryLoadPercent >= EmergencyModeSetting)
+                    {
+                        EmergencymodeFunc(false);
 
-                }
-                else
-                {
-                    EmergencymodeFunc(true);
+                    }
+                    else
+                    {
+                        EmergencymodeFunc(true);
+                    }
                 }
             }
-
-            if (UranSaveMode)
+            else
             {
-                if (BatteryLoadPercent >= UranSavingSetting)
+                EmergencymodeFunc(true);
+            }
+            
+            if (!UranSaveModeOverride)
+            {
+                if (UranSaveMode)
                 {
-                    UranSaverModeFunc(false);
-                }
-                else
-                {
-                    UranSaverModeFunc(true);
+                    if (BatteryLoadPercent >= UranSavingSetting)
+                    {
+                        UranSaverModeFunc(false);
+                    }
+                    else
+                    {
+                        UranSaverModeFunc(true);
+                    }
                 }
             }
-
+            else
+            {
+                UranSaverModeFunc(true);
+            }
+            /*
             if(EmergencyModeOverride)
             {
                 EmergencymodeFunc(true);
@@ -1066,7 +1079,7 @@ INFO:BatteryLoadPercent = Loading..:;
             {
                 UranSaverModeFunc(true);
             }
-
+            */
         }
         int EmergencyMessageId = -1;
         int UNEmergencyMessageId = -1;
@@ -1917,7 +1930,8 @@ INFO:BatteryLoadPercent = Loading..:;
 
                 int Max = Convert.ToInt32(BatteryMaxLoad);
                 int Current = Convert.ToInt32(BatteryCurrentLoad);
-                    int Perc = ReturnPercent(Max, Current);
+
+                int Perc = ReturnPercent(Max, Current);
                 BatteryLoadPercent = Perc;
                 BatteryLoadIndicator = ReturnIndicator(Perc);
  
@@ -1961,8 +1975,8 @@ INFO:BatteryLoadPercent = Loading..:;
                 {
                     if (AllReactors.Count > 0)
                     {
-                        int Max = Convert.ToInt32(MaxPower);
-                        int Current = Convert.ToInt32(PowerUsed);
+                        decimal Max = Convert.ToDecimal(MaxPower);
+                        decimal Current = Convert.ToDecimal(PowerUsed);
 
 
                         int Perc = ReturnPercent(Max, Current);
@@ -1979,8 +1993,8 @@ INFO:BatteryLoadPercent = Loading..:;
                 {
                     if (AllSolarPanels.Count > 0)
                     {
-                        int Max = Convert.ToInt32(AllSolarPanels.Count);
-                        int Current = Convert.ToInt32(SolarPanelsRunning);
+                        decimal Max = Convert.ToDecimal(AllSolarPanels.Count);
+                        decimal Current = Convert.ToDecimal(SolarPanelsRunning);
                         int Perc = ReturnPercent(Max, Current);
                         Data.Value = SolarPanelsRunning + "/" + AllSolarPanels.Count + Environment.NewLine + SolarRunningIndicator + " " + Perc + "%" ;
                     }
@@ -1994,8 +2008,8 @@ INFO:BatteryLoadPercent = Loading..:;
                 {
                     if (AllSolarPanels.Count > 0)
                     {
-                        int Max = Convert.ToInt32(SolarMaxOutput);
-                        int Current = Convert.ToInt32(SolarOutput);
+                        decimal Max = Convert.ToDecimal(SolarMaxOutput);
+                        decimal Current = Convert.ToDecimal(SolarOutput);
                         double maxMath = SolarMaxOutput * 1000 / AllSolarPanels.Count;
                         double currentMath = SolarOutput * 1000 / AllSolarPanels.Count;
 
@@ -2017,8 +2031,8 @@ INFO:BatteryLoadPercent = Loading..:;
                 {
                     if (AllBatterys.Count > 0)
                     {
-                        int Max = Convert.ToInt32(BatteryAllCount);
-                        int Current = Convert.ToInt32(BatteryCountRunning);
+                        decimal Max = Convert.ToDecimal(BatteryAllCount);
+                        decimal Current = Convert.ToDecimal(BatteryCountRunning);
                         int Perc = ReturnPercent(Max, Current);
                         Data.Value = BatteryCountRunning + "/" + BatteryAllCount + Environment.NewLine + BatteryRunningIndicator + " " + Perc + "%";
                     }
@@ -2104,19 +2118,23 @@ INFO:BatteryLoadPercent = Loading..:;
             return Out;
         }
 
-        public int ReturnPercent(int Max, int Current)
+        public int ReturnPercent(decimal Max, decimal Current)
         {
             if(Current == Max)
             {
 
                 return 100;
             }
-            double Percent = 0;
-            double Math = (Max / 100);
+            decimal Percent = 0;
+
+            decimal Math = (Max / 100);
             int PercentInt = 0;
+
             if (Math != 0)
             {
+
                 Percent = (Current / Math);
+
                 PercentInt = Convert.ToInt32(Percent);
             }
 
