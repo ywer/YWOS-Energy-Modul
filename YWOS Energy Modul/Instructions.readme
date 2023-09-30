@@ -1,5 +1,13 @@
 ﻿R e a d m e
 -----------
+YWOS Energy Modul, please make sure you use it whit YW Main Modul found here: https://steamcommunity.com/sharedfiles/filedetails/?id=2094290375
 
-In this file you can include any instructions or other comments you want to have injected onto the 
-top of your final script. You can safely delete this file if you do not want any such comments.
+EmergencyModeSetting defines at what percentage the emergency mode is activated.
+Range: 10|20|30|40|50|60|70|80|90|Off;
+
+UranSaveModeSettin sets at what percentage the reactors are deactivated when above and activated when below.
+Range: 10|20|30|40|50|60|70|80|90|Off;
+
+UranSaverModeOverride and EmergencyModeOverride overwrite the corresponding mode regardless of whether it is active or inactive.
+As long as the overwrite is active, the corresponding mode is disabled.
+ 

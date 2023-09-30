@@ -1,0 +1,15 @@
+﻿03/11/2023 15:25:39:Energy:Debug: ModulName 
+03/11/2023 15:25:39:Energy:Debug: UranSaverModeOverride 
+03/11/2023 15:25:39:Energy:Debug: EmergencyModeOverride 
+03/11/2023 15:25:39:Energy:Debug: PreEmergencyModeOverride 
+03/11/2023 15:25:39:Energy:Debug: EmergencyModeSetting 
+03/11/2023 15:25:39:Energy:Debug: UranSaveModeSetting 
+03/11/2023 15:25:39:Energy:Debug: ReactorRunning 
+03/11/2023 15:25:39:Energy:Debug: PowerUsed 
+03/11/2023 15:25:39:Energy:Debug: MaxPower 
+03/11/2023 15:25:39:Energy:Debug: SolarPanelsRunning 
+03/11/2023 15:25:39:Energy:Debug: SolarOutput 
+03/11/2023 15:25:39:Energy:Debug: BatteryCountRunning 
+03/11/2023 15:25:39:Energy:Debug: BatteryVoltage 
+
+03/11/2023 15:25:39:Energy:Debug: BatteryLoadPercent 
