@@ -750,7 +750,7 @@ INFO:BatteryLoadPercent = Loading..:;
 
         #region Script specific Values
         //edit per new  modul 
-        double Version = 0.2; 
+        double Version = 0.3; 
         bool PreemergencyMode = false;
         bool PreemergencyModeOverride = false;
         bool EmergencyMode = false;
