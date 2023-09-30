@@ -37,7 +37,7 @@ namespace IngameScript
         string MainLCDName = "MainLCD"; //LCD here used to Temp Logging
         #endregion
 
-
+        
 
 
         #region Private
